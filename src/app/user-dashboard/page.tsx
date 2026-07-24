@@ -13,15 +13,45 @@ export default function UserDashboard() {
   const [bookings, setBookings] = useState<any[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userId = searchParams.get("userId");
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    if (!userId) {
-      router.push("/");
+    const queryId = searchParams.get("userId");
+
+    if (queryId) {
+      setUserId(queryId);
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: queryId
+        })
+      );
+
       return;
     }
+
+    const saved = localStorage.getItem("user");
+
+    if (!saved) {
+      router.replace("/");
+      return;
+    }
+
+    const user = JSON.parse(saved);
+
+    setUserId(user.id);
+
+  }, []);
+
+  useEffect(() => {
+
+    if (!userId) return;
+
     fetchUserData(userId);
+
     fetchUserBookings(userId);
+
   }, [userId]);
 
   useEffect(() => {
@@ -124,8 +154,11 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        <button 
-          onClick={() => router.push("/")}
+        <button
+          onClick={() => {
+            localStorage.removeItem("user");
+            router.replace("/");
+          }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition mt-6"
         >
           <span>تسجيل الخروج</span>

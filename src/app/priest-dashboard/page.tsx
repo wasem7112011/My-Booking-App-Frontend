@@ -12,9 +12,43 @@ export default function PriestDashboard() {
   const [historySearch, setHistorySearch] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const priestName = searchParams.get("name") || "أبونا مقار";
+  const [priestName, setPriestName] = useState("");
 
   useEffect(() => {
+
+    const queryName = searchParams.get("name");
+
+    if (queryName) {
+
+      setPriestName(queryName);
+
+      localStorage.setItem(
+        "priest",
+        JSON.stringify({
+          name: queryName
+        })
+      );
+
+      return;
+
+    }
+
+    const saved = localStorage.getItem("priest");
+
+    if (!saved) {
+      router.replace("/");
+      return;
+    }
+
+    const priest = JSON.parse(saved);
+
+    setPriestName(priest.name);
+
+  }, []);
+
+  useEffect(() => {
+    if (!priestName) return;
+
     fetchBookings(priestName);
     fetchRegisteredUsers(priestName);
   }, [priestName]);
@@ -89,7 +123,13 @@ export default function PriestDashboard() {
           </nav>
         </div>
 
-        <button onClick={() => router.push("/")} className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20">
+        <button
+          onClick={() => {
+            localStorage.removeItem("priest");
+            router.replace("/");
+          }}
+          className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20"
+        >
           <span>تسجيل الخروج</span>
         </button>
       </aside>
