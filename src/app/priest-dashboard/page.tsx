@@ -15,7 +15,7 @@ export default function PriestDashboard() {
   const [priestName, setPriestName] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("priest");
+    const saved = sessionStorage.getItem("priest");
 
     if (!saved) {
       router.replace("/");
@@ -106,7 +106,7 @@ export default function PriestDashboard() {
 
         <button
           onClick={() => {
-            localStorage.removeItem("priest");
+            sessionStorage.removeItem("priest");
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20"
