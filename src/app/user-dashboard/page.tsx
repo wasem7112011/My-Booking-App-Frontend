@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -12,24 +12,9 @@ export default function UserDashboard() {
   const [selectedDate, setSelectedDate] = useState("");
   const [bookings, setBookings] = useState<any[]>([]);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    const queryId = searchParams.get("userId");
-    if (queryId) {
-      setUserId(queryId);
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: queryId
-        })
-      );
-
-      return;
-    }
-
     const saved = localStorage.getItem("user");
 
     if (!saved) {
@@ -40,8 +25,7 @@ export default function UserDashboard() {
     const user = JSON.parse(saved);
 
     setUserId(user.id);
-
-  }, []);
+  }, [router]);
 
   useEffect(() => {
 
