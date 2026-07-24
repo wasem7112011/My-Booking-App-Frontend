@@ -50,7 +50,8 @@ export default function UserDashboard() {
       if (data.success) {
         setUser(data.user);
       } else {
-        router.push("/");
+        localStorage.removeItem("user");
+        router.replace("/");
       }
     } catch (err) {
       console.error(err);
