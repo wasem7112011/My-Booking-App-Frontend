@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function PriestDashboard() {
   const [priest, setPriest] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"current" | "all-history">("current");
@@ -21,7 +23,7 @@ export default function PriestDashboard() {
 
   async function fetchBookings(name: string) {
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${encodeURIComponent(name)}`);
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(name)}`);
       const data = await res.json();
       setBookings(data);
     } catch (err) {
@@ -31,7 +33,7 @@ export default function PriestDashboard() {
 
   async function fetchRegisteredUsers(name: string) {
     try {
-      const res = await fetch(`http://localhost:5000/api/priest-users/${encodeURIComponent(name)}`);
+      const res = await fetch(`${API_BASE_URL}/api/priest-users/${encodeURIComponent(name)}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setRegisteredUsersList(data);
@@ -43,7 +45,7 @@ export default function PriestDashboard() {
 
   async function updateStatus(id: string, status: string) {
     try {
-      await fetch(`http://localhost:5000/api/bookings/${id}`, {
+      await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
@@ -117,7 +119,7 @@ export default function PriestDashboard() {
         </div>
 
         <button 
-          onClick={() => { localStorage.clear(); window.location.href = "/signForm"; }}
+          onClick={() => { localStorage.clear(); window.location.href = "/"; }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function AuthPage() {
   const [form, setForm] = useState("register");
   const router = useRouter();
@@ -18,7 +20,7 @@ export default function AuthPage() {
       alert("كلمات المرور غير متطابقة");
       return;
     }
-    const res = await fetch("http://localhost:5000/api/register", {
+    const res = await fetch(`${API_BASE_URL}/api/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(regData)
@@ -34,7 +36,7 @@ export default function AuthPage() {
 
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const res = await fetch("http://localhost:5000/api/login", {
+    const res = await fetch(`${API_BASE_URL}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(logData)
@@ -50,7 +52,7 @@ export default function AuthPage() {
 
   async function priestLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const res = await fetch("http://localhost:5000/api/priest-login", {
+    const res = await fetch(`${API_BASE_URL}/api/priest-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(priestData)
