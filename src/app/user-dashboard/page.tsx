@@ -17,7 +17,6 @@ export default function UserDashboard() {
 
   useEffect(() => {
     const queryId = searchParams.get("userId");
-
     if (queryId) {
       setUserId(queryId);
 
