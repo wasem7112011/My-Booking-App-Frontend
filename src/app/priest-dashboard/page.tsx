@@ -15,16 +15,15 @@ export default function PriestDashboard() {
   const [priestName, setPriestName] = useState("");
 
   useEffect(() => {
-    const saved = sessionStorage.getItem("priest");
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name");
 
-    if (!saved) {
+    if (!name) {
       router.replace("/");
       return;
     }
 
-    const priest = JSON.parse(saved);
-
-    setPriestName(priest.name);
+    setPriestName(name);
   }, [router]);
 
   useEffect(() => {
@@ -106,7 +105,6 @@ export default function PriestDashboard() {
 
         <button
           onClick={() => {
-            sessionStorage.removeItem("priest");
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20"

@@ -15,16 +15,15 @@ export default function UserDashboard() {
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    const saved = sessionStorage.getItem("user");
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("userId");
 
-    if (!saved) {
+    if (!id) {
       router.replace("/");
       return;
     }
 
-    const user = JSON.parse(saved);
-
-    setUserId(user.id);
+    setUserId(id);
   }, [router]);
 
   useEffect(() => {
@@ -50,7 +49,6 @@ export default function UserDashboard() {
       if (data.success) {
         setUser(data.user);
       } else {
-        sessionStorage.removeItem("user");
         router.replace("/");
       }
     } catch (err) {
@@ -140,7 +138,6 @@ export default function UserDashboard() {
 
         <button
           onClick={() => {
-            sessionStorage.removeItem("user");
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition mt-6"

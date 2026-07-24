@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -13,21 +13,6 @@ export default function AuthPage() {
   const [regData, setRegData] = useState({ fullName: "", birthDate: "", phone: "", password: "", confirmPassword: "" });
   const [logData, setLogData] = useState({ phone: "", password: "" });
   const [priestData, setPriestData] = useState({ name: "", password: "" });
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      router.replace(`/user-dashboard?userId=${user.id}`);
-      return;
-    }
-
-    const savedPriest = localStorage.getItem("priest");
-    if (savedPriest) {
-      const priest = JSON.parse(savedPriest);
-      router.replace(`/priest-dashboard?name=${encodeURIComponent(priest.name)}`);
-    }
-  }, []);
 
   async function register(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -42,7 +27,6 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
-      localStorage.setItem("user", JSON.stringify({ id: data.userId, fullName: regData.fullName }));
       router.push(`/user-dashboard?userId=${data.userId}`);
     } else {
       alert(data.error);
@@ -58,7 +42,6 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
-      localStorage.setItem("user", JSON.stringify(data.user));
       router.push(`/user-dashboard?userId=${data.user.id}`);
     } else {
       alert(data.error);
@@ -74,7 +57,6 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
-      localStorage.setItem("priest", JSON.stringify(data.priest));
       router.push(`/priest-dashboard?name=${encodeURIComponent(data.priest.name)}`);
     } else {
       alert(data.error);
