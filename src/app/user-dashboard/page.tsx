@@ -6,10 +6,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function UserDashboard() {
   const [user, setUser] = useState<any>(null);
-  const [priests] = useState<string[]>(["أبونا مقار"]);
+  const [priests, setPriests] = useState<string[]>([]);
   const [selectedPriest, setSelectedPriest] = useState("أبونا مقار");
   const [slots, setSlots] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const router = useRouter();
   const [userId, setUserId] = useState("");
@@ -42,6 +43,10 @@ export default function UserDashboard() {
     }
   }, [selectedPriest]);
 
+  useEffect(() => {
+    fetchPriests();
+  }, []);
+
   async function fetchUserData(id: string) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
@@ -56,15 +61,39 @@ export default function UserDashboard() {
     }
   }
 
+  async function fetchPriests() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/priests`);
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setPriests(data.map((p: any) => p.name));
+
+        if (data.length > 0) {
+          setSelectedPriest(data[0].name);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function fetchSlots(priestName: string) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/priest-slots?priestName=${encodeURIComponent(priestName)}`);
+      const res = await fetch(
+        `${API_BASE_URL}/api/priest-slots?priestName=${encodeURIComponent(priestName)}`
+      );
+
       const data = await res.json();
+
       if (Array.isArray(data)) {
         setSlots(data);
+
         if (data.length > 0) {
+          setSelectedSlot(data[0]);
           setSelectedDate(data[0].date);
         } else {
+          setSelectedSlot(null);
           setSelectedDate("");
         }
       }
@@ -99,7 +128,8 @@ export default function UserDashboard() {
         body: JSON.stringify({
           userId,
           priestName: selectedPriest,
-          date: selectedDate
+          date: selectedSlot.date,
+          startTime: selectedSlot.startTime
         })
       });
       const data = await res.json();
@@ -175,12 +205,23 @@ export default function UserDashboard() {
                     {slots.map((slot, idx) => (
                       <div 
                         key={idx}
-                        onClick={() => setSelectedDate(slot.date)}
+                        onClick={() => {
+                          setSelectedSlot(slot);
+                          setSelectedDate(slot.date);
+                        }}
                         className={`p-4 rounded-2xl border cursor-pointer transition flex justify-between items-center ${
                           selectedDate === slot.date ? "bg-amber-400/20 border-amber-400 text-white" : "bg-white/5 border-white/15 text-gray-300"
                         }`}
                       >
-                        <span className="font-bold">{slot.date}</span>
+                        <div>
+                          <p className="font-bold">
+                            {slot.date}
+                          </p>
+
+                          <p className="text-xs text-gray-400 mt-1">
+                            يبدأ من الساعة {slot.startTime}
+                          </p>
+                        </div>
                         <span className="text-xs px-3 py-1 rounded-full bg-white/10">متاح: {slot.slotsLeft}</span>
                       </div>
                     ))}
@@ -201,12 +242,49 @@ export default function UserDashboard() {
             ) : (
               <div className="flex flex-col gap-4">
                 {bookings.map((b: any) => (
-                  <div key={b._id} className="p-5 rounded-2xl bg-white/5 border border-white/15 flex justify-between items-center">
+                  <div
+                    key={b._id}
+                    className="p-5 rounded-2xl bg-white/5 border border-white/15 flex justify-between items-center"
+                  >
                     <div>
-                      <h3 className="font-bold text-lg text-white">{b.priestName}</h3>
-                      <p className="text-xs text-gray-300">التاريخ: {b.date}</p>
+                      <h3 className="font-bold text-lg text-white">
+                        {b.priestName}
+                      </h3>
+
+                      <p className="text-xs text-gray-300">
+                        التاريخ: {b.date}
+                      </p>
+
+                      <p className="text-xs text-gray-300 mt-1">
+                        يبدأ من الساعة {b.startTime}
+                      </p>
+
+                      <p className="text-sm mt-2">
+                        {b.status === "pending" && (
+                          <span className="text-yellow-400">
+                            ⏳ في انتظار موافقة الكاهن
+                          </span>
+                        )}
+
+                        {b.status === "accepted" && (
+                          <span className="text-emerald-400">
+                            ✅ تم قبول الحجز
+                          </span>
+                        )}
+
+                        {b.status === "rejected" && (
+                          <span className="text-red-400">
+                            ❌ تم رفض الحجز
+                          </span>
+                        )}
+                      </p>
                     </div>
-                    {b.queueNumber && <span className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">رقم الدور: {b.queueNumber}</span>}
+
+                    {b.status === "accepted" && (
+                      <span className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold">
+                        رقم الدور {b.queueNumber}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
