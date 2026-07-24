@@ -6,9 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function UserDashboard() {
   const [user, setUser] = useState<any>(null);
-  const [priests] = useState<string[]>([
-    "أبونا مقار"
-  ]);
+  const [priests, setPriests] = useState<string[]>(["أبونا مقار"]);
   const [selectedPriest, setSelectedPriest] = useState("أبونا مقار");
   const [slots, setSlots] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
@@ -137,9 +135,9 @@ export default function UserDashboard() {
               <div>
                 <label className="block text-sm font-semibold text-gray-300 mb-2">الأب الكاهن</label>
                 <select 
-                  className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5 text-white text-sm outline-none transition focus:border-white/50 cursor-not-allowed opacity-80"
+                  className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5 text-white text-sm outline-none transition focus:border-white/50 cursor-pointer"
                   value={selectedPriest}
-                  disabled
+                  onChange={(e) => setSelectedPriest(e.target.value)}
                 >
                   {priests.map((p, index) => (
                     <option key={index} value={p} className="bg-slate-900 text-white">{p}</option>

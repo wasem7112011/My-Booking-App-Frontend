@@ -12,20 +12,33 @@ export default function PriestDashboard() {
   const [historySearch, setHistorySearch] = useState("");
 
   useEffect(() => {
+    let currentPriest = null;
     const p = localStorage.getItem("priest");
     if (p) {
-      const parsed = JSON.parse(p);
-      setPriest(parsed);
-      fetchBookings(parsed.name);
-      fetchRegisteredUsers(parsed.name);
+      try {
+        currentPriest = JSON.parse(p);
+      } catch (e) {
+        currentPriest = null;
+      }
     }
+
+    if (!currentPriest || !currentPriest.name) {
+      currentPriest = { name: "أبونا مقار" };
+      localStorage.setItem("priest", JSON.stringify(currentPriest));
+    }
+
+    setPriest(currentPriest);
+    fetchBookings(currentPriest.name);
+    fetchRegisteredUsers(currentPriest.name);
   }, []);
 
   async function fetchBookings(name: string) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(name)}`);
       const data = await res.json();
-      setBookings(data);
+      if (Array.isArray(data)) {
+        setBookings(data);
+      }
     } catch (err) {
       console.error(err);
     }

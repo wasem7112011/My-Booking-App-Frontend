@@ -111,8 +111,8 @@ export default function AuthPage() {
 
           {form === "priest-login" && (
             <form onSubmit={priestLogin} className="mt-8 flex flex-col gap-4">
-              <input type="text" placeholder="اسم الكاهن (مثال: ابونا مرقس)" className={inputStyle} onChange={e => setPriestData({...priestData, name: e.target.value})} required />
-              <input type="password" placeholder="كلمة المرور (مثال: 123)" className={inputStyle} onChange={e => setPriestData({...priestData, password: e.target.value})} required />
+              <input type="text" placeholder="اسم الكاهن" className={inputStyle} onChange={e => setPriestData({...priestData, name: e.target.value})} required />
+              <input type="password" placeholder="كلمة المرور" className={inputStyle} onChange={e => setPriestData({...priestData, password: e.target.value})} required />
               <button type="submit" className="mt-2 rounded-2xl bg-white text-slate-900 font-bold py-3 transition hover:bg-gray-100">دخول الأب الكاهن</button>
               <div className="flex justify-center gap-4 mt-2 text-sm">
                 <button type="button" onClick={() => setForm("login")} className="font-bold text-gray-200 hover:underline">تسجيل دخول الأفراد</button>
