@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -11,28 +12,9 @@ export default function PriestDashboard() {
   const [search, setSearch] = useState("");
   const [historySearch, setHistorySearch] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [priestName, setPriestName] = useState("");
 
   useEffect(() => {
-
-    const queryName = searchParams.get("name");
-
-    if (queryName) {
-
-      setPriestName(queryName);
-
-      localStorage.setItem(
-        "priest",
-        JSON.stringify({
-          name: queryName
-        })
-      );
-
-      return;
-
-    }
-
     const saved = localStorage.getItem("priest");
 
     if (!saved) {
@@ -43,8 +25,7 @@ export default function PriestDashboard() {
     const priest = JSON.parse(saved);
 
     setPriestName(priest.name);
-
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!priestName) return;
