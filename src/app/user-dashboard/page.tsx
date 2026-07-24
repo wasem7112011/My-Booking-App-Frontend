@@ -6,10 +6,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function UserDashboard() {
   const [user, setUser] = useState<any>(null);
-  const [priests, setPriests] = useState<string[]>([
+  const [priests] = useState<string[]>([
     "أبونا مقار"
   ]);
-  const [selectedPriest, setSelectedPriest] = useState("أبونا مرقس");
+  const [selectedPriest, setSelectedPriest] = useState("أبونا مقار");
   const [slots, setSlots] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [bookings, setBookings] = useState<any[]>([]);
@@ -131,15 +131,15 @@ export default function UserDashboard() {
           
           <div className="bg-white/[0.08] border border-white/15 backdrop-blur-2xl p-6 sm:p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <span className="text-xs font-semibold text-amber-300 tracking-wider uppercase">حجز موعد اعتراف جديد</span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">اختر الكاهن والموعد المناسب</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">اختر الموعد المناسب</h1>
 
             <form onSubmit={handleBooking} className="mt-6 flex flex-col gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">اختر الأب الكاهن</label>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">الأب الكاهن</label>
                 <select 
-                  className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5 text-white text-sm outline-none transition focus:border-white/50"
+                  className="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3.5 text-white text-sm outline-none transition focus:border-white/50 cursor-not-allowed opacity-80"
                   value={selectedPriest}
-                  onChange={(e) => setSelectedPriest(e.target.value)}
+                  disabled
                 >
                   {priests.map((p, index) => (
                     <option key={index} value={p} className="bg-slate-900 text-white">{p}</option>
