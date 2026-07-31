@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "@/app/lib/socket";
+import { authFetch, clearToken } from "@/app/lib/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+/* ---------- Presentational helpers (visual only) ---------- */
 
 function GlobalStyle() {
   return (
@@ -237,7 +240,7 @@ export default function UserDashboard() {
 
   async function fetchUserData(id: string) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
+      const res = await authFetch(`${API_BASE_URL}/api/users/${id}`);
       const data = await res.json();
       if (data.success) {
         setUser(data.user);
@@ -268,7 +271,7 @@ export default function UserDashboard() {
 
   async function fetchSlots(priestName: string) {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${API_BASE_URL}/api/priest-slots?priestName=${encodeURIComponent(priestName)}`
       );
 
@@ -292,7 +295,7 @@ export default function UserDashboard() {
 
   async function fetchUserBookings(id: string) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/user-bookings/${id}`);
+      const res = await authFetch(`${API_BASE_URL}/api/user-bookings/${id}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setBookings(data);
@@ -310,11 +313,10 @@ export default function UserDashboard() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/bookings`, {
+      const res = await authFetch(`${API_BASE_URL}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
           priestName: selectedPriest,
           date: selectedSlot.date,
           startTime: selectedSlot.startTime
@@ -363,6 +365,7 @@ export default function UserDashboard() {
 
         <button
           onClick={() => {
+            clearToken();
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-[#e08893] bg-[var(--wine)]/15 border border-[var(--wine)]/30 hover:bg-[var(--wine)]/25 transition-colors mt-6"

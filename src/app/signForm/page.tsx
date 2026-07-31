@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { setToken } from "@/app/lib/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -80,6 +81,7 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
+      setToken(data.token);
       router.push(`/user-dashboard?userId=${data.userId}`);
     } else {
       alert(data.error);
@@ -95,6 +97,7 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
+      setToken(data.token);
       router.push(`/user-dashboard?userId=${data.user.id}`);
     } else {
       alert(data.error);
@@ -110,6 +113,7 @@ export default function AuthPage() {
     });
     const data = await res.json();
     if (data.success) {
+      setToken(data.token);
       router.push(`/priest-dashboard?name=${encodeURIComponent(data.priest.name)}`);
     } else {
       alert(data.error);

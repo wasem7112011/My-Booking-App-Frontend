@@ -1,11 +1,10 @@
 "use client";
 
-// يتطلب هذا الملف: npm install react-icons framer-motion
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "@/app/lib/socket";
+import { authFetch, clearToken } from "@/app/lib/auth";
 import {
   FiCalendar,
   FiClock,
@@ -228,7 +227,12 @@ export default function PriestDashboard() {
 
   async function fetchBookings(name: string) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(name)}`);
+      const res = await authFetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(name)}`);
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        router.replace("/");
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setBookings(data);
@@ -240,7 +244,7 @@ export default function PriestDashboard() {
 
   async function fetchConfessors(name: string) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/confessors/${encodeURIComponent(name)}`);
+      const res = await authFetch(`${API_BASE_URL}/api/confessors/${encodeURIComponent(name)}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setConfessors(data);
@@ -252,7 +256,7 @@ export default function PriestDashboard() {
 
   async function updateStatus(id: string, status: string) {
     try {
-      await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
+      await authFetch(`${API_BASE_URL}/api/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
@@ -266,7 +270,7 @@ export default function PriestDashboard() {
 
   async function confessAction(id: string, confessed: boolean) {
     try {
-      await fetch(`${API_BASE_URL}/api/bookings/${id}/confession`, {
+      await authFetch(`${API_BASE_URL}/api/bookings/${id}/confession`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confessed })
@@ -283,7 +287,7 @@ export default function PriestDashboard() {
     if (!confirm("حذف هذا المعترف من السجل نهائيًا؟")) return;
 
     try {
-      await fetch(`${API_BASE_URL}/api/confessors/${id}`, {
+      await authFetch(`${API_BASE_URL}/api/confessors/${id}`, {
         method: "DELETE"
       });
       if (selectedConfessor?._id === id) {
@@ -301,13 +305,12 @@ export default function PriestDashboard() {
       return;
     }
 
-    const res = await fetch(`${API_BASE_URL}/api/priest-slots`, {
+    const res = await authFetch(`${API_BASE_URL}/api/priest-slots`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        priestName,
         date: newDate,
         startTime,
         slotsLeft: Number(slotsCount)
@@ -324,7 +327,7 @@ export default function PriestDashboard() {
   }
 
   async function fetchMySlots(name: string) {
-    const res = await fetch(
+    const res = await authFetch(
       `${API_BASE_URL}/api/priest-slots/${encodeURIComponent(name)}`
     );
 
@@ -336,7 +339,7 @@ export default function PriestDashboard() {
   async function deleteSlot(id: string) {
     if (!confirm("حذف هذا الموعد؟")) return;
 
-    await fetch(`${API_BASE_URL}/api/priest-slots/${id}`, {
+    await authFetch(`${API_BASE_URL}/api/priest-slots/${id}`, {
       method: "DELETE"
     });
 
@@ -398,6 +401,7 @@ export default function PriestDashboard() {
 
         <button
           onClick={() => {
+            clearToken();
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-[#e08893] bg-[var(--wine)]/15 border border-[var(--wine)]/30 hover:bg-[var(--wine)]/25 transition-colors"
