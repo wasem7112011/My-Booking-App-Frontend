@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "@/app/lib/socket";
@@ -127,6 +127,11 @@ export default function UserDashboard() {
   const [user, setUser] = useState<any>(null);
   const [priests, setPriests] = useState<string[]>([]);
   const [selectedPriest, setSelectedPriest] = useState("أبونا مقار");
+  const selectedPriestRef = useRef(selectedPriest);
+
+  useEffect(() => {
+    selectedPriestRef.current = selectedPriest;
+  }, [selectedPriest]);
   const [slots, setSlots] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
@@ -183,7 +188,9 @@ export default function UserDashboard() {
   useEffect(() => {
     if (!userId) return;
 
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    }
     socket.emit("join", `user:${userId}`);
 
     function handleBookingStatus(payload: any) {
@@ -193,23 +200,28 @@ export default function UserDashboard() {
       } else if (payload?.status === "rejected") {
         pushToast(`تم رفض حجزك مع ${payload.priestName} بتاريخ ${payload.date}`, "wine");
       } else if (payload?.status === "closed") {
-        fetchSlots(selectedPriest);
+        pushToast(`تم إغلاق حجزك مع ${payload.priestName} بعد انتهاء الاعتراف`, "gold");
+        fetchSlots(selectedPriestRef.current);
       }
     }
 
     function handleCleanup() {
       fetchUserBookings(userId);
-      fetchSlots(selectedPriest);
+      fetchSlots(selectedPriestRef.current);
     }
 
     socket.on("booking-status", handleBookingStatus);
     socket.on("cleanup", handleCleanup);
 
+    // ملاحظة: لا نقفل الاتصال هنا عمدًا. قفل socket المشترك عند كل إعادة
+    // تشغيل لهذا الـ effect (زي اللي بيحصل مرتين في وضع التطوير بسبب
+    // React Strict Mode) ممكن يقطع محاولة اتصال لسه مكملتش، ويسيب الـ
+    // socket عالق من غير ما يرجع يتصل تاني. القفل الفعلي بيحصل بس عند
+    // تسجيل الخروج (زرار الخروج تحت).
     return () => {
       socket.off("booking-status", handleBookingStatus);
       socket.off("cleanup", handleCleanup);
       socket.emit("leave", `user:${userId}`);
-      socket.disconnect();
     };
   }, [userId]);
 
@@ -275,6 +287,12 @@ export default function UserDashboard() {
         `${API_BASE_URL}/api/priest-slots?priestName=${encodeURIComponent(priestName)}`
       );
 
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        router.replace("/");
+        return;
+      }
+
       const data = await res.json();
 
       if (Array.isArray(data)) {
@@ -287,6 +305,8 @@ export default function UserDashboard() {
           setSelectedSlot(null);
           setSelectedDate("");
         }
+      } else {
+        console.error("fetchSlots: unexpected response", data);
       }
     } catch (err) {
       console.error(err);
@@ -296,9 +316,16 @@ export default function UserDashboard() {
   async function fetchUserBookings(id: string) {
     try {
       const res = await authFetch(`${API_BASE_URL}/api/user-bookings/${id}`);
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        router.replace("/");
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setBookings(data);
+      } else {
+        console.error("fetchUserBookings: unexpected response", data);
       }
     } catch (err) {
       console.error(err);
@@ -366,6 +393,7 @@ export default function UserDashboard() {
         <button
           onClick={() => {
             clearToken();
+            socket.disconnect();
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-[#e08893] bg-[var(--wine)]/15 border border-[var(--wine)]/30 hover:bg-[var(--wine)]/25 transition-colors mt-6"

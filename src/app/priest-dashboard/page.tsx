@@ -1,5 +1,7 @@
 "use client";
 
+// يتطلب هذا الملف: npm install react-icons framer-motion
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -182,7 +184,9 @@ export default function PriestDashboard() {
   useEffect(() => {
     if (!priestName) return;
 
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    }
     socket.emit("join", `priest:${priestName}`);
 
     function handleNewBooking(payload: any) {
@@ -214,6 +218,8 @@ export default function PriestDashboard() {
     socket.on("confessors-updated", handleConfessorsUpdated);
     socket.on("cleanup", handleCleanup);
 
+    // ملاحظة: مبنقفلش الاتصال هنا عمدًا (نفس السبب الموجود في لوحة المتردد) —
+    // القفل الفعلي بيحصل بس عند تسجيل الخروج
     return () => {
       socket.off("new-booking", handleNewBooking);
       socket.off("bookings-updated", handleBookingsUpdated);
@@ -221,7 +227,6 @@ export default function PriestDashboard() {
       socket.off("confessors-updated", handleConfessorsUpdated);
       socket.off("cleanup", handleCleanup);
       socket.emit("leave", `priest:${priestName}`);
-      socket.disconnect();
     };
   }, [priestName]);
 
@@ -245,9 +250,16 @@ export default function PriestDashboard() {
   async function fetchConfessors(name: string) {
     try {
       const res = await authFetch(`${API_BASE_URL}/api/confessors/${encodeURIComponent(name)}`);
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        router.replace("/");
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setConfessors(data);
+      } else {
+        console.error("fetchConfessors: unexpected response", data);
       }
     } catch (err) {
       console.error(err);
@@ -327,13 +339,27 @@ export default function PriestDashboard() {
   }
 
   async function fetchMySlots(name: string) {
-    const res = await authFetch(
-      `${API_BASE_URL}/api/priest-slots/${encodeURIComponent(name)}`
-    );
+    try {
+      const res = await authFetch(
+        `${API_BASE_URL}/api/priest-slots/${encodeURIComponent(name)}`
+      );
 
-    const data = await res.json();
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        router.replace("/");
+        return;
+      }
 
-    setMySlots(data);
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setMySlots(data);
+      } else {
+        console.error("fetchMySlots: unexpected response", data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function deleteSlot(id: string) {
@@ -402,6 +428,7 @@ export default function PriestDashboard() {
         <button
           onClick={() => {
             clearToken();
+            socket.disconnect();
             router.replace("/");
           }}
           className="hidden md:flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-[#e08893] bg-[var(--wine)]/15 border border-[var(--wine)]/30 hover:bg-[var(--wine)]/25 transition-colors"
